@@ -6,11 +6,17 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig
+	Server  *ServerConfig
+	Logging *LoggingConfig
 }
 
 type ServerConfig struct {
 	Port int `validate:"required,min=1,max=65535"`
+}
+
+type LoggingConfig struct {
+	Disabled bool
+	Level    string `validate:"required,oneof=debug info warn error"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -29,8 +35,12 @@ func LoadConfig() (*Config, error) {
 
 func createDefaultConfig() *Config {
 	return &Config{
-		Server: ServerConfig{
+		Server: &ServerConfig{
 			Port: 8080,
+		},
+		Logging: &LoggingConfig{
+			Disabled: false,
+			Level:    "info",
 		},
 	}
 }

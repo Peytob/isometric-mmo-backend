@@ -1,2 +1,6 @@
 server:
   port: 8080 # Listen http port. Required.
+
+logging:
+  disabled: false # Set true to disable any logs output.
+  level: info # Log level. Required. Debug -> Info -> Warn -> Error

@@ -1,6 +1,9 @@
 package main
 
-import "isonetric-mmo-backend/configs"
+import (
+	"isonetric-mmo-backend/configs"
+	log "log/slog"
+)
 
 func main() {
 	config, err := configs.LoadConfig()
@@ -8,5 +11,9 @@ func main() {
 		panic(err)
 	}
 
-	println(config.Server.Port)
+	if err := configs.InitLogging(config); err != nil {
+		panic(err)
+	}
+
+	log.Info("Configuration loaded. Initializing application")
 }
