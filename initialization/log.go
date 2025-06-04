@@ -1,12 +1,13 @@
-package configs
+package initialization
 
 import (
 	"io"
+	"isonetric-mmo-backend/pkg/model"
 	log "log/slog"
 	"os"
 )
 
-func InitLogging(config *Config) error {
+func Logging(config *model.Config) error {
 	if config.Logging.Disabled {
 		log.SetDefault(log.New(log.NewTextHandler(io.Discard, nil)))
 		return nil

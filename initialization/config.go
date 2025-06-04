@@ -1,25 +1,12 @@
-package configs
+package initialization
 
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
+	"isonetric-mmo-backend/pkg/model"
 )
 
-type Config struct {
-	Server  *ServerConfig
-	Logging *LoggingConfig
-}
-
-type ServerConfig struct {
-	Port int `validate:"required,min=1,max=65535"`
-}
-
-type LoggingConfig struct {
-	Disabled bool
-	Level    string `validate:"required,oneof=debug info warn error"`
-}
-
-func LoadConfig() (*Config, error) {
+func Config() (*model.Config, error) {
 	config := createDefaultConfig()
 
 	if err := loadConfigData(config); err != nil {
@@ -33,19 +20,19 @@ func LoadConfig() (*Config, error) {
 	return config, nil
 }
 
-func createDefaultConfig() *Config {
-	return &Config{
-		Server: &ServerConfig{
+func createDefaultConfig() *model.Config {
+	return &model.Config{
+		Server: &model.ServerConfig{
 			Port: 8080,
 		},
-		Logging: &LoggingConfig{
+		Logging: &model.LoggingConfig{
 			Disabled: false,
 			Level:    "info",
 		},
 	}
 }
 
-func loadConfigData(config *Config) error {
+func loadConfigData(config *model.Config) error {
 	// Probably too many overhead from viper lib. I just need to load configuration from file and envs, nothing more
 
 	viper.AddConfigPath("./")
@@ -64,7 +51,7 @@ func loadConfigData(config *Config) error {
 	return nil
 }
 
-func validateConfig(config *Config) error {
+func validateConfig(config *model.Config) error {
 	validate := validator.New()
 
 	if err := validate.Struct(config); err != nil {
