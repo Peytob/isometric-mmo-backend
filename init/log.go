@@ -1,8 +1,8 @@
-package initialization
+package init
 
 import (
 	"io"
-	"isonetric-mmo-backend/pkg/model"
+	"isonetric-mmo-backend/internal/model"
 	log "log/slog"
 	"os"
 )

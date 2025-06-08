@@ -1,20 +1,22 @@
-package initialization
+package init
 
 import (
+	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
-	"isonetric-mmo-backend/pkg/model"
+	"isonetric-mmo-backend/internal/model"
 )
 
 func Config() (*model.Config, error) {
 	config := createDefaultConfig()
 
 	if err := loadConfigData(config); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
 	if err := validateConfig(config); err != nil {
-		return nil, err
+		// todo make more readability text via validator.ValidationErrors
+		return nil, fmt.Errorf("config valudation failed. Details: %w", err)
 	}
 
 	return config, nil

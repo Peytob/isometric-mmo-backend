@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"golang.org/x/sync/errgroup"
-	"isonetric-mmo-backend/initialization"
+	ini "isonetric-mmo-backend/init"
 	log "log/slog"
 	"net/http"
 	"os"
@@ -13,30 +13,48 @@ import (
 )
 
 func main() {
-	config, err := initialization.Config()
+	var err error
+
+	config, err := ini.Config()
 	if err != nil {
 		panic(err)
 	}
 
-	if err := initialization.Logging(config); err != nil {
+	if err := ini.Logging(config); err != nil {
 		panic(err)
 	}
 
-	log.Info("configuration loaded. Initializing application")
+	log.Info("initializing database")
+
+	// todo ini.SqlDatabase(config.Database.Sql)
+
+	log.Info("initializing application")
+
+	_, err = ini.Application(config)
+	if err != nil {
+		log.Error("application structure cant be initialized", "err", err.Error())
+		panic(err)
+	}
+
+	httpServer, err := ini.HttpServer(config.Server, http.NewServeMux())
+	if err != nil {
+		log.Error("http server cant be initialized", "err", err.Error())
+		panic(err)
+	}
 
 	// Simplest gracefully shutdown realisation
 
+	log.Info("starting application services")
+
 	rootCtx, rootCtxStop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer rootCtxStop()
-
-	server := initialization.Server(config.Server, http.NewServeMux())
 
 	errorGroup, gCtx := errgroup.WithContext(rootCtx)
 
 	errorGroup.Go(func() error {
 		log.Info("starting http server listening", "port", config.Server.Port)
-		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Error("error while listening on http server", "err", err)
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error("error while listening on http httpServer", "err", err.Error())
 			return err
 		}
 		return nil
@@ -45,12 +63,12 @@ func main() {
 	errorGroup.Go(func() error {
 		<-gCtx.Done()
 		log.Info("graceful shutdown on http server started")
-		return server.Shutdown(context.Background())
+		return httpServer.Shutdown(context.Background())
 	})
 
 	<-rootCtx.Done()
 	if err := errorGroup.Wait(); err != nil {
-		log.Error("error while waiting for graceful shutdown", "err", err)
+		log.Error("error while waiting for graceful shutdown", "err", err.Error())
 	}
 
 	log.Info("shutdown complete")
