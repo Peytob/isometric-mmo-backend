@@ -2,14 +2,15 @@ package init
 
 import (
 	"fmt"
+	"github.com/jmoiron/sqlx"
 	"isonetric-mmo-backend/internal/app"
 	"isonetric-mmo-backend/internal/model"
 )
 
-func Application(config *model.Config) (*app.Application, error) {
+func Application(config *model.Config, db *sqlx.DB) (*app.Application, error) {
 	var err error
 
-	stores, err := store(config)
+	stores, err := store(config, db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize stores: %w", err)
 	}
@@ -22,7 +23,7 @@ func Application(config *model.Config) (*app.Application, error) {
 	return app.NewApplication(services, stores), nil
 }
 
-func store(config *model.Config) (*app.Store, error) {
+func store(config *model.Config, db *sqlx.DB) (*app.Store, error) {
 	return &app.Store{}, nil
 }
 

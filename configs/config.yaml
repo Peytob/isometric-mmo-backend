@@ -1,5 +1,18 @@
+# All configuration also can be set via env variables with "MMO_" prefix.
+# For example: server.port -> "MMO_SERVER_PORT", store.sql.password -> "MMO_SERVER_PASSWORD"
+# environment variables have higher priority than cfg files. Default values in configuration
+# initialized equal to values you can see below. There are all possible configuration options.
+
 server:
-  port: 8080 # Listen http port. Required.
+  port: 8080 # Listen http port. Required. Min 1, max 65535
+
+store:
+  sql:
+    host: "localhost" # Database host. Required.
+    username: "postgres" # Database username. Required. Not empty. Max len 63 (default identifier max len).
+#    password: "secret, load from env pls" # Database password. Required.
+    port: 5432 # Database port. Required. Min 1, max 65535.
+    dbname: "mmobackend" # Database name. Required. Max len 63 (default identifier max len).
 
 logging:
   disabled: false # Set true to disable any logs output.

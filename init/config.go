@@ -1,10 +1,13 @@
 package init
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 	"isonetric-mmo-backend/internal/model"
+	"strings"
 )
 
 func Config() (*model.Config, error) {
@@ -31,22 +34,57 @@ func createDefaultConfig() *model.Config {
 			Disabled: false,
 			Level:    "info",
 		},
+		Store: &model.StoreConfig{
+			Sql: &model.SqlConfig{
+				Host:     "localhost",
+				Username: "postgres",
+				Password: "",
+				Port:     5432,
+				DbName:   "mmobackend",
+			},
+		},
 	}
 }
 
 func loadConfigData(config *model.Config) error {
 	// Probably too many overhead from viper lib. I just need to load configuration from file and envs, nothing more
+	// and there are some problems with env values deserializing. Used some hack from
+	// https://github.com/spf13/viper/issues/188
+
+	if err := setupDefaultViperConfig(config); err != nil {
+		return err
+	}
+
+	replacer := strings.NewReplacer(".", "_")
+	viper.SetEnvKeyReplacer(replacer)
+	viper.SetEnvPrefix("mmo")
+	viper.AutomaticEnv()
 
 	viper.AddConfigPath("./")
 	viper.AddConfigPath("./configs")
 	viper.SetConfigName("config")
-	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err != nil {
+	if err := viper.MergeInConfig(); err != nil {
 		return err
 	}
 
 	if err := viper.Unmarshal(config); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func setupDefaultViperConfig(config *model.Config) error {
+	viper.SetConfigType("yaml")
+
+	defaultConfigBinary, err := yaml.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	defaultConfig := bytes.NewReader(defaultConfigBinary)
+	if err := viper.MergeConfig(defaultConfig); err != nil {
 		return err
 	}
 
